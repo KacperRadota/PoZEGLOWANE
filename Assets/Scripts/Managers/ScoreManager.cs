@@ -1,7 +1,7 @@
 using DataStorage;
 using TMPro;
 using UnityEngine;
-using static DataStorage.DataClasses.ScoringEvents;
+using static DataStorage.DataClasses.Boats.Boat;
 
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
 
@@ -15,7 +15,6 @@ namespace Managers
 
         private int _currentScore;
 
-
         public void IncrementRed()
         {
             IncrementScore(redScoreIncrement);
@@ -28,29 +27,35 @@ namespace Managers
 
         public void SaveScore()
         {
-            var scoringEvent = new ScoringEvent
+            var scoringEvent = new ScoringEvent()
             {
-                Score = _currentScore,
-                TimeStamp = System.DateTime.Now.ToString()
+                score = _currentScore,
+                timeStamp = System.DateTime.Now.ToString()
             };
-            var time = System.Diagnostics.Stopwatch.GetTimestamp();
-            DataController.Instance.LoadScoringEvents();
-            DataController.Instance.ScoringEvents.Add(scoringEvent);
-            DataController.Instance.SaveScoringEvents();
-            Debug.Log($"JSON serialisation time: {System.Diagnostics.Stopwatch.GetTimestamp() - time}");
+            DataController.Instance.LoadBoats();
+            DataController.Instance.boats.currentlyChosenBoat.scoringEvents.Add(scoringEvent);
+            DataController.Instance.SaveBoats();
         }
 
         [ContextMenu("Print All Scores")]
         private void PrintAllScores()
         {
-            DataController.Instance.LoadScoringEvents();
-            var scoringEvents = DataController.Instance.ScoringEvents;
-            foreach (var scoringEvent in scoringEvents)
+            DataController.Instance.LoadBoats();
+            var boats = DataController.Instance.boats;
+            foreach (var boat in boats.boatsList)
             {
-                Debug.Log(scoringEvent.TimeStamp + " - " + scoringEvent.Score);
+                Debug.Log($"Boat name: {boat.boatName}");
+                foreach (var crewMemberName in boat.crewMembersNames)
+                {
+                    Debug.Log(crewMemberName);
+                }
+
+                foreach (var scoringEvent in boat.scoringEvents)
+                {
+                    Debug.Log($"{scoringEvent.timeStamp} - {scoringEvent.score}");
+                }
             }
         }
-
 
         private void Start()
         {

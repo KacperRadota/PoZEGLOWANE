@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using static DataStorage.DataClasses;
-using static DataStorage.DataClasses.ScoringEvents;
+using static DataStorage.DataClasses.Boats;
+using static DataStorage.DataClasses.Boats.Boat;
 
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
 
@@ -11,16 +13,15 @@ namespace DataStorage
     public class DataController : MonoBehaviour
     {
         public static DataController Instance { get; private set; }
-        public List<ScoringEvent> ScoringEvents;
-        private ScoringEvents _scoringEventsObj;
+        public Boats boats;
 
-        private const string ScoringEventsFileName = "scoringEvents.json";
-        private string _scoringEventsDataPath;
+        private const string BoatsFileName = "boats.json";
+        private string _boatsDataPath;
 
         private void Awake()
         {
             HandleInstance();
-            _scoringEventsDataPath = Path.Combine(Application.persistentDataPath, ScoringEventsFileName);
+            _boatsDataPath = Path.Combine(Application.persistentDataPath, BoatsFileName);
             Application.targetFrameRate = 90;
             LoadAllData();
             return;
@@ -40,58 +41,79 @@ namespace DataStorage
 
         private void LoadAllData()
         {
-            LoadScoringEvents();
+            LoadBoats();
         }
 
-        public void SaveScoringEvents()
+        public void SaveBoats()
         {
-            List<string> scoringEventsJsonList = new();
-            foreach (var scoringEvent in ScoringEvents)
+            var isCurrentBoatPresent = false;
+            for (var i = 0; i < boats.boatsList.Count; i++)
             {
-                var json = JsonUtility.ToJson(scoringEvent);
-                scoringEventsJsonList.Add(json);
+                if (boats.boatsList[i].id != boats.currentlyChosenBoat.id) continue;
+                isCurrentBoatPresent = true;
+                boats.boatsList[i] = boats.currentlyChosenBoat;
             }
 
-            _scoringEventsObj.ScoringEventsJsonList = scoringEventsJsonList;
+            if (!isCurrentBoatPresent)
+            {
+                boats.boatsList.Add(boats.currentlyChosenBoat);
+            }
 
-
-            var jsonData = JsonUtility.ToJson(_scoringEventsObj);
-            File.WriteAllText(_scoringEventsDataPath, jsonData);
+            var jsonData = JsonUtility.ToJson(boats);
+            File.WriteAllText(_boatsDataPath, jsonData);
         }
 
-        public void LoadScoringEvents()
+        public void LoadBoats()
         {
-            if (File.Exists(_scoringEventsDataPath))
+            if (File.Exists(_boatsDataPath))
             {
-                var jsonData = File.ReadAllText(_scoringEventsDataPath);
-                if (_scoringEventsObj is null)
+                var jsonData = File.ReadAllText(_boatsDataPath);
+                if (boats is null)
                 {
-                    _scoringEventsObj = JsonUtility.FromJson<ScoringEvents>(jsonData);
+                    boats = JsonUtility.FromJson<Boats>(jsonData);
                 }
                 else
                 {
-                    JsonUtility.FromJsonOverwrite(jsonData, _scoringEventsObj);
+                    JsonUtility.FromJsonOverwrite(jsonData, boats);
                 }
-
-                List<ScoringEvent> scoringEvents = new();
-                foreach (var scoringEventJson in _scoringEventsObj.ScoringEventsJsonList)
-                {
-                    var scoringEvent = JsonUtility.FromJson<ScoringEvent>(scoringEventJson);
-                    scoringEvents.Add(scoringEvent);
-                }
-
-                ScoringEvents = scoringEvents;
             }
             else
             {
-                ScoringEvents = new List<ScoringEvent>();
-                _scoringEventsObj = new ScoringEvents
+                boats = new Boats()
                 {
-                    ScoringEventsJsonList = new List<string>()
+                    boatsList = new List<Boat>(),
+                    currentlyChosenBoat = new Boat()
+                    {
+                        id = 0,
+                        boatName = "",
+                        checkInDay = "",
+                        checkInMonth = "",
+                        checkInYear = "",
+                        checkOutDay = "",
+                        checkOutMonth = "",
+                        checkOutYear = "",
+                        crewMembersNames = new List<string>(),
+                        notes = "",
+                        scoringEvents = new List<ScoringEvent>(),
+                        lastCalculatedScore = 0,
+                        lastCalculatedScoreListCount = 0
+                    }
                 };
+                SaveBoats();
+            }
+        }
+
+        public ulong GetNextAvailableID()
+        {
+            LoadBoats();
+            var existingIDs = new SortedSet<ulong>(boats.boatsList.Select(boat => boat.id));
+            ulong nextID = 0;
+            foreach (var unused in existingIDs.TakeWhile(id => id == nextID))
+            {
+                nextID++;
             }
 
-            SaveScoringEvents();
+            return nextID;
         }
     }
 }
