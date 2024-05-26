@@ -39,6 +39,23 @@ namespace DataStorage
             }
         }
 
+        private void Start()
+        {
+            RecalculateCurrentScoreOfCurrentBoatIfApplicable();
+        }
+
+        private void RecalculateCurrentScoreOfCurrentBoatIfApplicable()
+        {
+            LoadBoats();
+            var currentlyChosenBoat = Instance.boats.currentlyChosenBoat;
+            if (currentlyChosenBoat.scoringEvents.Count == currentlyChosenBoat.lastCalculatedScoreListCount) return;
+            var score = Instance.boats.currentlyChosenBoat.scoringEvents.Sum(scoringEvent =>
+                scoringEvent.score);
+            currentlyChosenBoat.lastCalculatedScore = score;
+            currentlyChosenBoat.lastCalculatedScoreListCount = currentlyChosenBoat.scoringEvents.Count;
+            SaveBoats();
+        }
+
         private void LoadAllData()
         {
             LoadBoats();

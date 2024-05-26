@@ -15,16 +15,6 @@ namespace Managers
 
         private int _currentScore;
 
-        public void IncrementRed()
-        {
-            IncrementScore(redScoreIncrement);
-        }
-
-        public void IncrementGreen()
-        {
-            IncrementScore(greenScoreIncrement);
-        }
-
         public void SaveScore()
         {
             var scoringEvent = new ScoringEvent()
@@ -35,6 +25,38 @@ namespace Managers
             DataController.Instance.LoadBoats();
             DataController.Instance.boats.currentlyChosenBoat.scoringEvents.Add(scoringEvent);
             DataController.Instance.SaveBoats();
+        }
+
+        public void IncrementScore()
+        {
+            ChangeScore(1);
+        }
+
+        public void DecrementScore()
+        {
+            ChangeScore(-1);
+        }
+
+        private void Start()
+        {
+            DisplayCurrentScore();
+        }
+
+        private void ChangeScore(int unitSign)
+        {
+            switch (PlayerPrefs.GetString(PPKeys.ChosenBuoyColour))
+            {
+                case PPValues.RedBuoy:
+                    _currentScore += unitSign * redScoreIncrement;
+                    break;
+                case PPValues.GreenBuoy:
+                    _currentScore += unitSign * greenScoreIncrement;
+                    break;
+            }
+
+            _currentScore = Mathf.Clamp(_currentScore, 0, 9999);
+
+            DisplayCurrentScore();
         }
 
         [ContextMenu("Print All Scores")]
@@ -57,20 +79,9 @@ namespace Managers
             }
         }
 
-        private void Start()
-        {
-            DisplayCurrentScore();
-        }
-
         private void DisplayCurrentScore()
         {
             score.text = $"+{_currentScore}";
-        }
-
-        private void IncrementScore(int value)
-        {
-            _currentScore += value;
-            DisplayCurrentScore();
         }
     }
 }
