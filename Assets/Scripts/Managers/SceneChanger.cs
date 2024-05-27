@@ -1,4 +1,6 @@
+using System.Collections;
 using DataStorage;
+using ObjectTypes;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -6,34 +8,58 @@ namespace Managers
 {
     public class SceneChanger : MonoBehaviour
     {
-        private static void ChangeSceneTo(string name)
+        public static SceneChanger Instance;
+        private static readonly int StartTrigger = Animator.StringToHash("Start");
+        private const int BasicLayer = 0;
+        private Animator _transition;
+
+        private void Awake()
         {
-            SceneManager.LoadScene(name);
+            _transition = FindObjectOfType<Crossfade>().GetComponent<Animator>();
+            if (Instance) return;
+            Instance = this;
         }
 
-        private static void ChangeToScorerSceneWith(string buoyPPValue)
+        private void ChangeSceneTo(string sceneName)
+        {
+            StartCoroutine(LoadLevelWithAnimation(sceneName, _transition));
+            return;
+
+            static IEnumerator LoadLevelWithAnimation(string sceneName, Animator transition)
+            {
+                transition.SetTrigger(StartTrigger);
+                while (transition.IsInTransition(BasicLayer))
+                {
+                    yield return new WaitForEndOfFrame();
+                }
+
+                SceneManager.LoadScene(sceneName);
+            }
+        }
+
+        private void ChangeToScorerSceneWith(string buoyPPValue)
         {
             PlayerPrefs.SetString(PPKeys.ChosenBuoyColour, buoyPPValue);
             PlayerPrefs.Save();
             ChangeSceneTo(Scenes.ScorerScene);
         }
 
-        public static void ChangeToMainScene()
+        public void ChangeToMainScene()
         {
             ChangeSceneTo(Scenes.MainScene);
         }
 
-        public static void ChangeToChooseScorerScene()
+        public void ChangeToChooseScorerScene()
         {
             ChangeSceneTo(Scenes.ChooseScorerScene);
         }
 
-        public static void ChangeToRedScorerScene()
+        public void ChangeToRedScorerScene()
         {
             ChangeToScorerSceneWith(PPValues.RedBuoy);
         }
 
-        public static void ChangeToGreenScorerScene()
+        public void ChangeToGreenScorerScene()
         {
             ChangeToScorerSceneWith(PPValues.GreenBuoy);
         }

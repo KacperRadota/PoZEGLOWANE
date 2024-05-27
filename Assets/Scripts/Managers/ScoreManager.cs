@@ -1,5 +1,6 @@
 using DataStorage;
 using TMPro;
+using UI;
 using UnityEngine;
 using static DataStorage.DataClasses.Boats.Boat;
 
@@ -14,6 +15,20 @@ namespace Managers
         [SerializeField] private int greenScoreIncrement = 2;
 
         private int _currentScore;
+        private Pulsator _scorePulsator;
+        private AudioSource _audioCollectSFX;
+
+        public void GoToPreviousScreenIfApplicable(GameObject questionPopUp)
+        {
+            if (_currentScore == 0)
+            {
+                SceneChanger.Instance.ChangeToChooseScorerScene();
+            }
+            else
+            {
+                PopUpManager.Instance.OpenPopUp(questionPopUp);
+            }
+        }
 
         public void SaveScore()
         {
@@ -39,7 +54,9 @@ namespace Managers
 
         private void Start()
         {
-            DisplayCurrentScore();
+            _scorePulsator = score.GetComponentInParent<Pulsator>();
+            _audioCollectSFX = GetComponent<AudioSource>();
+            HandleScoreChange(true);
         }
 
         private void ChangeScore(int unitSign)
@@ -56,32 +73,20 @@ namespace Managers
 
             _currentScore = Mathf.Clamp(_currentScore, 0, 9999);
 
-            DisplayCurrentScore();
+            HandleScoreChange();
         }
 
-        [ContextMenu("Print All Scores")]
-        private void PrintAllScores()
-        {
-            DataController.Instance.LoadBoats();
-            var boats = DataController.Instance.boats;
-            foreach (var boat in boats.boatsList)
-            {
-                Debug.Log($"Boat name: {boat.boatName}");
-                foreach (var crewMemberName in boat.crewMembersNames)
-                {
-                    Debug.Log(crewMemberName);
-                }
-
-                foreach (var scoringEvent in boat.scoringEvents)
-                {
-                    Debug.Log($"{scoringEvent.timeStamp} - {scoringEvent.score}");
-                }
-            }
-        }
-
-        private void DisplayCurrentScore()
+        private void HandleScoreChange(bool skipEffects = false)
         {
             score.text = $"+{_currentScore}";
+            if (skipEffects) return;
+            _scorePulsator.PlayPulsatingEffect();
+            if (_audioCollectSFX.isPlaying)
+            {
+                _audioCollectSFX.Stop();
+            }
+
+            _audioCollectSFX.Play();
         }
     }
 }

@@ -1,16 +1,16 @@
 using DataStorage;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Managers
 {
     public class MainMenuManager : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI boatNameTitle;
-        [SerializeField] private GameObject popUpBackground;
         [SerializeField] private GameObject noFirstBoatPopUp;
 
-        public void OKClicked(TMP_InputField inputField)
+        public void OKClicked(InputField inputField)
         {
             var boatName = inputField.text.Trim();
             inputField.text = "";
@@ -21,10 +21,8 @@ namespace Managers
                 {
                     return;
                 }
-                else
-                {
-                    boatName = "Moja Łódka";
-                }
+
+                boatName = "Moja Łódka";
             }
 
             DataController.Instance.boats.currentlyChosenBoat.boatName = boatName;
@@ -37,8 +35,7 @@ namespace Managers
             DataController.Instance.LoadBoats();
             SetBoatNameTitle();
             if (DataController.Instance.boats.currentlyChosenBoat.boatName != "") return;
-            popUpBackground.SetActive(true);
-            noFirstBoatPopUp.SetActive(true);
+            PopUpManager.Instance.OpenPopUp(noFirstBoatPopUp);
         }
 
         private void SetBoatNameTitle()
