@@ -1,6 +1,7 @@
 using System.Collections;
 using DataStorage;
 using Managers;
+using ObjectTypes;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,6 +12,8 @@ namespace UI
         private bool _waitingForSecondBack;
         private float _firstBackTime;
         private const float TimeBetweenBacks = 3f;
+        private ScoreManager _scoreManager;
+        private ScoreNotSavedPopUp _scoreNotSavedPopUp;
 
         private void Awake()
         {
@@ -18,6 +21,13 @@ namespace UI
             {
                 gameObject.SetActive(false);
             }
+        }
+
+        private void Start()
+        {
+            if (!SceneManager.GetActiveScene().name.Equals(Scenes.ScorerScene)) return;
+            _scoreManager = FindObjectOfType<ScoreManager>();
+            _scoreNotSavedPopUp = FindObjectOfType<ScoreNotSavedPopUp>(true);
         }
 
         private void Update()
@@ -32,7 +42,7 @@ namespace UI
                     SceneChanger.Instance.ChangeToMainScene();
                     return;
                 case Scenes.ScorerScene:
-                    SceneChanger.Instance.ChangeToChooseScorerScene();
+                    _scoreManager.GoToPreviousScreenIfApplicable(_scoreNotSavedPopUp.gameObject);
                     return;
                 default:
                     SceneChanger.Instance.ChangeToMainScene();
