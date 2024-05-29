@@ -8,7 +8,7 @@ namespace Managers
 {
     public class SceneChanger : MonoBehaviour
     {
-        public static SceneChanger Instance;
+        public static SceneChanger instance;
         private static readonly int StartTrigger = Animator.StringToHash("Start");
         private const int BasicLayer = 0;
         private Animator _transition;
@@ -16,8 +16,8 @@ namespace Managers
         private void Awake()
         {
             _transition = FindObjectOfType<Crossfade>().GetComponent<Animator>();
-            if (Instance) return;
-            Instance = this;
+            if (instance) return;
+            instance = this;
         }
 
         private void ChangeSceneTo(string sceneName)
@@ -62,6 +62,11 @@ namespace Managers
         public void ChangeToGreenScorerScene()
         {
             ChangeToScorerSceneWith(PPValues.GreenBuoy);
+        }
+
+        public void ChangeToInfoScene()
+        {
+            ChangeSceneTo(Scenes.InfoScene);
         }
     }
 }

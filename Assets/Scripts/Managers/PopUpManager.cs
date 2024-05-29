@@ -6,7 +6,7 @@ namespace Managers
 {
     public class PopUpManager : MonoBehaviour
     {
-        public static PopUpManager Instance;
+        public static PopUpManager instance;
 
         [SerializeField] private GameObject background;
         [SerializeField] private float popUpAnimationDuration = 0.1f;
@@ -18,8 +18,8 @@ namespace Managers
         {
             _backgroundImage = background.GetComponent<Image>();
             _finalAlphaValue = _backgroundImage.color.a;
-            if (Instance) return;
-            Instance = this;
+            if (instance) return;
+            instance = this;
         }
 
         public void OpenPopUp(GameObject popUp)

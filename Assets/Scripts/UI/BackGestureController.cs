@@ -39,13 +39,14 @@ namespace UI
                     ExitAppHandler();
                     return;
                 case Scenes.ChooseScorerScene:
-                    SceneChanger.Instance.ChangeToMainScene();
+                case Scenes.InfoScene:
+                    SceneChanger.instance.ChangeToMainScene();
                     return;
                 case Scenes.ScorerScene:
                     _scoreManager.GoToPreviousScreenIfApplicable(_scoreNotSavedPopUp.gameObject);
                     return;
                 default:
-                    SceneChanger.Instance.ChangeToMainScene();
+                    SceneChanger.instance.ChangeToMainScene();
                     return;
             }
         }

@@ -1,5 +1,5 @@
 using DataStorage;
-using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,7 +7,6 @@ namespace Managers
 {
     public class MainMenuManager : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI boatNameTitle;
         [SerializeField] private GameObject noFirstBoatPopUp;
 
         public void OKClicked(InputField inputField)
@@ -27,20 +26,14 @@ namespace Managers
 
             DataController.Instance.boats.currentlyChosenBoat.boatName = boatName;
             DataController.Instance.SaveBoats();
-            SetBoatNameTitle();
+            BoatNameTitleController.SetBoatName();
         }
 
         private void Start()
         {
             DataController.Instance.LoadBoats();
-            SetBoatNameTitle();
             if (DataController.Instance.boats.currentlyChosenBoat.boatName != "") return;
-            PopUpManager.Instance.OpenPopUp(noFirstBoatPopUp);
-        }
-
-        private void SetBoatNameTitle()
-        {
-            boatNameTitle.text = DataController.Instance.boats.currentlyChosenBoat.boatName;
+            PopUpManager.instance.OpenPopUp(noFirstBoatPopUp);
         }
     }
 }

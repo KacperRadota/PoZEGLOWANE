@@ -20,22 +20,24 @@ namespace DataStorage
 
         private void Awake()
         {
-            HandleInstance();
+            if (!HandleInstance()) return;
             _boatsDataPath = Path.Combine(Application.persistentDataPath, BoatsFileName);
             Application.targetFrameRate = 90;
             LoadAllData();
             return;
 
-            void HandleInstance()
+            bool HandleInstance()
             {
                 if (!Instance)
                 {
                     Instance = this;
+                    transform.SetParent(null);
+                    DontDestroyOnLoad(this);
+                    return true;
                 }
-                else
-                {
-                    Destroy(gameObject);
-                }
+
+                Destroy(gameObject);
+                return false;
             }
         }
 
@@ -59,6 +61,12 @@ namespace DataStorage
         private void LoadAllData()
         {
             LoadBoats();
+        }
+
+        private static void SetPopUpShowInfo()
+        {
+            PlayerPrefs.SetInt(PPKeys.WasDownloadInfoShown, PPValues.False);
+            PlayerPrefs.Save();
         }
 
         public void SaveBoats()
@@ -116,6 +124,7 @@ namespace DataStorage
                         lastCalculatedScoreListCount = 0
                     }
                 };
+                SetPopUpShowInfo();
                 SaveBoats();
             }
         }
