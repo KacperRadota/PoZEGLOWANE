@@ -1,22 +1,24 @@
+// ReSharper disable RedundantUsingDirective
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static DataStorage.DataClasses;
 using static DataStorage.DataClasses.Boats;
 using static DataStorage.DataClasses.Boats.Boat;
 
+// ReSharper disable UnusedMember.Local
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
 
 namespace DataStorage
 {
     public class DataController : MonoBehaviour
     {
-        //TODO: uncomment webGL compiler checks
-// #if UNITY_WEBGL && !UNITY_EDITOR
-
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern bool IsIOS();
 
@@ -25,12 +27,16 @@ namespace DataStorage
 
         [DllImport("__Internal")]
         private static extern string LoadFromLocalStorage(string key);
-// #endif
+
+        [DllImport("__Internal")]
+        private static extern bool ExistsInLocalStorage(string key);
+#endif
 
         public static DataController Instance { get; private set; }
         public Boats boats;
 
         private const string BoatsFileName = "boats.json";
+        private const string LocalStorageKey = "BOATS";
         private string _boatsDataPath;
         private bool _isWebIOS;
 
@@ -38,11 +44,9 @@ namespace DataStorage
         {
             if (!HandleInstance()) return;
             _boatsDataPath = Path.Combine(Application.persistentDataPath, BoatsFileName);
-            _isWebIOS = false;
-// #if UNITY_WEBGL && !UNITY_EDITOR
-            _isWebIOS = IsIOS();
-// #endif
             Application.targetFrameRate = 90;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SetIsWebIOSAccordingly();
             LoadAllData();
             return;
 
@@ -59,11 +63,24 @@ namespace DataStorage
                 Destroy(gameObject);
                 return false;
             }
+
+            void SetIsWebIOSAccordingly()
+            {
+                _isWebIOS = false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                _isWebIOS = IsIOS();
+#endif
+            }
         }
 
-        private void Start()
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             RecalculateCurrentScoreOfCurrentBoatIfApplicable();
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
         private void RecalculateCurrentScoreOfCurrentBoatIfApplicable()
@@ -105,30 +122,57 @@ namespace DataStorage
             }
 
             var jsonData = JsonUtility.ToJson(boats);
-            File.WriteAllText(_boatsDataPath, jsonData);
+            if (_isWebIOS)
+            {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                SaveToLocalStorage(LocalStorageKey, jsonData);
+#endif
+            }
+            else
+            {
+                File.WriteAllText(_boatsDataPath, jsonData);
+            }
         }
 
         public void LoadBoats()
         {
+            var alreadyExists = false;
             if (_isWebIOS)
             {
-                LoadBoatsWithLocalStorage();
+#if UNITY_WEBGL && !UNITY_EDITOR
+                alreadyExists = ExistsInLocalStorage(LocalStorageKey);
+#endif
             }
             else
             {
-                LoadBoatsWithPersistentDataPath();
+                alreadyExists = File.Exists(_boatsDataPath);
             }
-        }
 
-        private void LoadBoatsWithLocalStorage()
-        {
-        }
-
-        private void LoadBoatsWithPersistentDataPath()
-        {
-            if (File.Exists(_boatsDataPath))
+            if (alreadyExists)
             {
-                var jsonData = File.ReadAllText(_boatsDataPath);
+                var jsonData = "";
+                if (_isWebIOS)
+                {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    jsonData = LoadFromLocalStorage(LocalStorageKey);
+#endif
+                }
+                else
+                {
+                    jsonData = File.ReadAllText(_boatsDataPath);
+                }
+
+                LoadDataFromJson(jsonData);
+            }
+            else
+            {
+                CreateNewSaveFile();
+            }
+
+            return;
+
+            void LoadDataFromJson(string jsonData)
+            {
                 if (boats is null)
                 {
                     boats = JsonUtility.FromJson<Boats>(jsonData);
@@ -138,7 +182,8 @@ namespace DataStorage
                     JsonUtility.FromJsonOverwrite(jsonData, boats);
                 }
             }
-            else
+
+            void CreateNewSaveFile()
             {
                 boats = new Boats()
                 {

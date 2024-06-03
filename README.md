@@ -12,6 +12,8 @@
 
 ## TODO:
 
+- Check iOS detecting function (in JS)
+- Bug: when on Android first time 2 pop-ups on the screen at the same time (download info, first boat name)
 - "Info" section, with things like:
     - Security Matters
     - Commands

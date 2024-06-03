@@ -25,7 +25,7 @@ namespace UI
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (IsAndroid() && PlayerPrefs.GetInt(PPKeys.WasDownloadInfoShown) == PPValues.False)
             {
-                PopUpManager.Instance.OpenPopUp(appDownloadInfoPopUp);
+                PopUpManager.instance.OpenPopUp(appDownloadInfoPopUp);
                 PlayerPrefs.SetInt(PPKeys.WasDownloadInfoShown, PPValues.True);
                 PlayerPrefs.Save();
             }

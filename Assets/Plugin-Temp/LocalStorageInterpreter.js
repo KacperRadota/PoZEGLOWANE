@@ -2,7 +2,7 @@
 //     SaveToLocalStorage: function (key, value) {
 //         localStorage.setItem(UTF8ToString(key), UTF8ToString(value));
 //     },
-//    
+//
 //     LoadFromLocalStorage: function (key) {
 //         var value = localStorage.getItem(UTF8ToString(key));
 //         if (value !== null) {
@@ -12,5 +12,9 @@
 //             return stringOnHeap;
 //         }
 //         return 0;
+//     },
+//
+//     ExistsInLocalStorage: function (key) {
+//         return localStorage.getItem(UTF8ToString(key)) !== null
 //     }
 // });
