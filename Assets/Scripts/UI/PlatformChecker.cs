@@ -15,8 +15,10 @@ namespace UI
     {
         [SerializeField] private GameObject appDownloadInfoPopUp;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern bool IsAndroid();
+#endif
 
         private void Start()
         {

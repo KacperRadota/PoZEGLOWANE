@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using static DataStorage.DataClasses;
 using static DataStorage.DataClasses.Boats;
@@ -12,16 +14,34 @@ namespace DataStorage
 {
     public class DataController : MonoBehaviour
     {
+        //TODO: uncomment webGL compiler checks
+// #if UNITY_WEBGL && !UNITY_EDITOR
+
+        [DllImport("__Internal")]
+        private static extern bool IsIOS();
+
+        [DllImport("__Internal")]
+        private static extern void SaveToLocalStorage(string key, string value);
+
+        [DllImport("__Internal")]
+        private static extern string LoadFromLocalStorage(string key);
+// #endif
+
         public static DataController Instance { get; private set; }
         public Boats boats;
 
         private const string BoatsFileName = "boats.json";
         private string _boatsDataPath;
+        private bool _isWebIOS;
 
         private void Awake()
         {
             if (!HandleInstance()) return;
             _boatsDataPath = Path.Combine(Application.persistentDataPath, BoatsFileName);
+            _isWebIOS = false;
+// #if UNITY_WEBGL && !UNITY_EDITOR
+            _isWebIOS = IsIOS();
+// #endif
             Application.targetFrameRate = 90;
             LoadAllData();
             return;
@@ -89,6 +109,22 @@ namespace DataStorage
         }
 
         public void LoadBoats()
+        {
+            if (_isWebIOS)
+            {
+                LoadBoatsWithLocalStorage();
+            }
+            else
+            {
+                LoadBoatsWithPersistentDataPath();
+            }
+        }
+
+        private void LoadBoatsWithLocalStorage()
+        {
+        }
+
+        private void LoadBoatsWithPersistentDataPath()
         {
             if (File.Exists(_boatsDataPath))
             {
