@@ -33,7 +33,7 @@ namespace Managers
         {
             DataController.Instance.LoadBoats();
             if (DataController.Instance.boats.currentlyChosenBoat.boatName != "") return;
-            PopUpManager.instance.OpenPopUp(noFirstBoatPopUp);
+            PopUpManager.Instance.OpenPopUp(noFirstBoatPopUp);
         }
     }
 }

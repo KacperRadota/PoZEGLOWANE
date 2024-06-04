@@ -7,27 +7,27 @@ namespace Managers
 {
     public class PopUpManager : MonoBehaviour
     {
-        public static PopUpManager instance;
+        public static PopUpManager Instance;
 
         [SerializeField] private GameObject background;
         [SerializeField] private float popUpAnimationDuration = 0.1f;
 
         private static Image _backgroundImage;
         private static float _finalAlphaValue;
-        private static Queue<GameObject> _popUpQueue;
+        private static readonly Queue<GameObject> PopUpQueue = new();
         private static bool _isAnyPopUpActive;
 
         private void Awake()
         {
             _backgroundImage = background.GetComponent<Image>();
             _finalAlphaValue = _backgroundImage.color.a;
-            if (instance) return;
-            instance = this;
+            if (Instance) return;
+            Instance = this;
         }
 
         public void OpenPopUp(GameObject popUp)
         {
-            _popUpQueue.Enqueue(popUp);
+            PopUpQueue.Enqueue(popUp);
             OpenPopUpFromQueue();
         }
 
@@ -40,10 +40,10 @@ namespace Managers
 
         private void OpenPopUpFromQueue()
         {
-            if (_popUpQueue.Count == 0) return;
+            if (PopUpQueue.Count == 0) return;
             if (_isAnyPopUpActive) return;
             _isAnyPopUpActive = true;
-            var popUp = _popUpQueue.Dequeue();
+            var popUp = PopUpQueue.Dequeue();
             var backgroundColor = _backgroundImage.color;
             _backgroundImage.color = new Color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
             var startScale = Vector3.one * 0.01f;

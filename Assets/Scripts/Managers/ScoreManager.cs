@@ -22,11 +22,11 @@ namespace Managers
         {
             if (_currentScore == 0)
             {
-                SceneChanger.instance.ChangeToChooseScorerScene();
+                SceneChanger.Instance.ChangeToChooseScorerScene();
             }
             else
             {
-                PopUpManager.instance.OpenPopUp(questionPopUp);
+                PopUpManager.Instance.OpenPopUp(questionPopUp);
             }
         }
 

@@ -8,7 +8,7 @@ namespace Managers
 {
     public class SceneChanger : MonoBehaviour
     {
-        public static SceneChanger instance;
+        public static SceneChanger Instance;
         private static readonly int StartTrigger = Animator.StringToHash("Start");
         private const int BasicLayer = 0;
         private Animator _transition;
@@ -16,8 +16,8 @@ namespace Managers
         private void Awake()
         {
             _transition = FindObjectOfType<Crossfade>().GetComponent<Animator>();
-            if (instance) return;
-            instance = this;
+            if (Instance) return;
+            Instance = this;
         }
 
         private void ChangeSceneTo(string sceneName)

@@ -118,6 +118,7 @@ namespace DataStorage
 
             if (!isCurrentBoatPresent)
             {
+                Debug.LogError("Adding current boat to list");
                 boats.boatsList.Add(boats.currentlyChosenBoat);
             }
 
@@ -130,7 +131,11 @@ namespace DataStorage
             }
             else
             {
+                Debug.LogError("Writing file to: " + _boatsDataPath);
                 File.WriteAllText(_boatsDataPath, jsonData);
+                Debug.LogError(
+                    "[S]File content:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                " +
+                    jsonData);
             }
         }
 
@@ -148,6 +153,7 @@ namespace DataStorage
                 alreadyExists = File.Exists(_boatsDataPath);
             }
 
+            Debug.LogError("Exists?: " + alreadyExists);
             if (alreadyExists)
             {
                 var jsonData = "";
@@ -161,6 +167,10 @@ namespace DataStorage
                 {
                     jsonData = File.ReadAllText(_boatsDataPath);
                 }
+
+                Debug.LogError(
+                    "[L]File content:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                " +
+                    jsonData);
 
                 LoadDataFromJson(jsonData);
             }
@@ -181,6 +191,8 @@ namespace DataStorage
                 {
                     JsonUtility.FromJsonOverwrite(jsonData, boats);
                 }
+
+                Debug.LogError("[O]BoatName: " + boats.currentlyChosenBoat.boatName);
             }
 
             void CreateNewSaveFile()
