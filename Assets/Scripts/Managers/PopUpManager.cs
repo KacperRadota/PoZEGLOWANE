@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +14,8 @@ namespace Managers
 
         private static Image _backgroundImage;
         private static float _finalAlphaValue;
+        private static Queue<GameObject> _popUpQueue;
+        private static bool _isAnyPopUpActive;
 
         private void Awake()
         {
@@ -24,6 +27,23 @@ namespace Managers
 
         public void OpenPopUp(GameObject popUp)
         {
+            _popUpQueue.Enqueue(popUp);
+            OpenPopUpFromQueue();
+        }
+
+        public void ClosePopUp(GameObject popUp)
+        {
+            StartCoroutine(ScaleOverTime(popUp, Vector3.one, Vector3.one * 0.01f, _finalAlphaValue, 0, true));
+            _isAnyPopUpActive = false;
+            OpenPopUpFromQueue();
+        }
+
+        private void OpenPopUpFromQueue()
+        {
+            if (_popUpQueue.Count == 0) return;
+            if (_isAnyPopUpActive) return;
+            _isAnyPopUpActive = true;
+            var popUp = _popUpQueue.Dequeue();
             var backgroundColor = _backgroundImage.color;
             _backgroundImage.color = new Color(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
             var startScale = Vector3.one * 0.01f;
@@ -31,11 +51,6 @@ namespace Managers
             background.SetActive(true);
             popUp.SetActive(true);
             StartCoroutine(ScaleOverTime(popUp, startScale, Vector3.one, 0, _finalAlphaValue));
-        }
-
-        public void ClosePopUp(GameObject popUp)
-        {
-            StartCoroutine(ScaleOverTime(popUp, Vector3.one, Vector3.one * 0.01f, _finalAlphaValue, 0, true));
         }
 
         private IEnumerator ScaleOverTime(GameObject obj, Vector3 startScale, Vector3 endScale, float startAlpha,

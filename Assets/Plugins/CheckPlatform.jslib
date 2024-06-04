@@ -8,8 +8,9 @@ mergeInto(LibraryManager.library, {
 
     IsIOS: function () {
         var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-        console.log("Is iOS: " + /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream);
-        return /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+        var x = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream; 
+        console.log("Is iOS: " + x);
+        return x;
     },
     
 });
