@@ -1,18 +1,19 @@
 // ReSharper disable RedundantUsingDirective
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using AOT;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static DataStorage.DataClasses;
 using static DataStorage.DataClasses.Boats;
 using static DataStorage.DataClasses.Boats.Boat;
 
-// ReSharper disable UnusedMember.Local
-// ReSharper disable SpecifyACultureInStringConversionExplicitly
 
 namespace DataStorage
 {
@@ -23,22 +24,44 @@ namespace DataStorage
         private static extern bool IsIOS();
 
         [DllImport("__Internal")]
-        private static extern void SaveToLocalStorage(string key, string value);
+        private static extern void SaveToIndexedDB(string value);
 
         [DllImport("__Internal")]
-        private static extern string LoadFromLocalStorage(string key);
+        private static extern string LoadFromIndexedDB(Action<string> action);
 
         [DllImport("__Internal")]
-        private static extern bool ExistsInLocalStorage(string key);
+        private static extern bool ExistsInIndexedDB(Action<int> action);
+
+        [MonoPInvokeCallback(typeof(Action<int>))]
+        public static void ExistsInIndexedDB_Callback(int value)
+        {
+            Debug.Log("'Exists' Callback called");
+            Instance._isStorageCreated = value != 0;
+            Instance._isFirstSetupReady = true;
+            Instance.LoadAllData();
+        }
+
+        [MonoPInvokeCallback(typeof(Action<string>))]
+        public static void LoadBoats_Callback(string value)
+        {
+            Debug.Log("'Load' Callback called");
+            Instance._loadBoatsCallbackResult = value;
+            Instance._isLoadBoatsCallbackCompleted = true;
+        }
+
 #endif
 
         public static DataController Instance { get; private set; }
         public Boats boats;
 
         private const string BoatsFileName = "boats.json";
-        private const string LocalStorageKey = "BOATS";
         private string _boatsDataPath;
         private bool _isWebIOS;
+        private bool _isStorageCreated;
+        private bool _isFirstSetupReady;
+        private bool _isLoadBoatsCallbackCompleted = true;
+        private string _loadBoatsCallbackResult;
+
 
         private void Awake()
         {
@@ -47,7 +70,7 @@ namespace DataStorage
             Application.targetFrameRate = 90;
             SceneManager.sceneLoaded += OnSceneLoaded;
             SetIsWebIOSAccordingly();
-            LoadAllData();
+            CheckIfStorageExists();
             return;
 
             bool HandleInstance()
@@ -68,8 +91,27 @@ namespace DataStorage
             {
                 _isWebIOS = false;
 #if UNITY_WEBGL && !UNITY_EDITOR
-                _isWebIOS = IsIOS();
+                // TODO change later
+                _isWebIOS = true;
+                Debug.Log($"Is iOS (set from C#): {_isWebIOS}");
+                // _isWebIOS = IsIOS();
 #endif
+            }
+
+            void CheckIfStorageExists()
+            {
+                if (_isWebIOS)
+                {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    ExistsInIndexedDB(ExistsInIndexedDB_Callback);
+#endif
+                }
+                else
+                {
+                    _isStorageCreated = File.Exists(_boatsDataPath);
+                    _isFirstSetupReady = true;
+                    LoadAllData();
+                }
             }
         }
 
@@ -118,7 +160,6 @@ namespace DataStorage
 
             if (!isCurrentBoatPresent)
             {
-                Debug.LogError("Adding current boat to list");
                 boats.boatsList.Add(boats.currentlyChosenBoat);
             }
 
@@ -126,47 +167,38 @@ namespace DataStorage
             if (_isWebIOS)
             {
 #if UNITY_WEBGL && !UNITY_EDITOR
-                SaveToLocalStorage(LocalStorageKey, jsonData);
+                SaveToIndexedDB(jsonData);
 #endif
             }
             else
             {
-                Debug.LogError("Writing file to: " + _boatsDataPath);
                 File.WriteAllText(_boatsDataPath, jsonData);
-                Debug.LogError(
-                    "[S]File content:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                " +
-                    jsonData);
             }
         }
 
         public void LoadBoats()
         {
-            var alreadyExists = false;
-            if (_isWebIOS)
+            while (!_isFirstSetupReady)
             {
-#if UNITY_WEBGL && !UNITY_EDITOR
-                alreadyExists = ExistsInLocalStorage(LocalStorageKey);
-#endif
-            }
-            else
-            {
-                alreadyExists = File.Exists(_boatsDataPath);
+                if (!_isFirstSetupReady) continue;
+                // Wait until setup is ready
+                break;
             }
 
-            Debug.LogError("Exists?: " + alreadyExists);
-            if (alreadyExists)
+            while (!_isLoadBoatsCallbackCompleted)
             {
-                var jsonData = "";
-                if (_isWebIOS)
-                {
-#if UNITY_WEBGL && !UNITY_EDITOR
-                    jsonData = LoadFromLocalStorage(LocalStorageKey);
-#endif
-                }
-                else
-                {
-                    jsonData = File.ReadAllText(_boatsDataPath);
-                }
+                if (!_isLoadBoatsCallbackCompleted) continue;
+                // If other class called LoadBoats(), wait until the result is gained, and return the function
+                return;
+            }
+
+            Debug.LogError("Exists?: " + _isStorageCreated);
+            if (_isStorageCreated)
+            {
+                // TODO lags after first creation somewhere here
+                var jsonData = _isWebIOS
+                    ? CallExternalLoadFunction().GetAwaiter().GetResult()
+                    : File.ReadAllText(_boatsDataPath);
 
                 Debug.LogError(
                     "[L]File content:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                " +
@@ -180,6 +212,28 @@ namespace DataStorage
             }
 
             return;
+
+            Task<string> CallExternalLoadFunction()
+            {
+                var tcs = new TaskCompletionSource<string>();
+                StartCoroutine(CallExternalLoadFunctionCoroutine(tcs));
+                return tcs.Task;
+
+                IEnumerator CallExternalLoadFunctionCoroutine(TaskCompletionSource<string> taskCompletionSource)
+                {
+                    _isLoadBoatsCallbackCompleted = false;
+                    _loadBoatsCallbackResult = "";
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    LoadFromIndexedDB(LoadBoats_Callback);
+#endif
+                    while (!_isLoadBoatsCallbackCompleted)
+                    {
+                        yield return null;
+                    }
+
+                    taskCompletionSource.SetResult(_loadBoatsCallbackResult);
+                }
+            }
 
             void LoadDataFromJson(string jsonData)
             {
@@ -219,8 +273,10 @@ namespace DataStorage
                 };
                 SetPopUpShowInfo();
                 SaveBoats();
+                _isStorageCreated = true;
             }
         }
+
 
         public ulong GetNextAvailableID()
         {

@@ -1,4 +1,5 @@
 ﻿// mergeInto(LibraryManager.library, {
+//
 //     SaveToLocalStorage: function (key, value) {
 //         localStorage.setItem(UTF8ToString(key), UTF8ToString(value));
 //     },
@@ -16,5 +17,6 @@
 //
 //     ExistsInLocalStorage: function (key) {
 //         return localStorage.getItem(UTF8ToString(key)) !== null
-//     }
+//     },
+//
 // });
