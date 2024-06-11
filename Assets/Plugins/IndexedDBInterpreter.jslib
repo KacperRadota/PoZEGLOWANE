@@ -12,17 +12,19 @@ mergeInto(LibraryManager.library, {
                 id: 1, json: convertedJsonString
             };
             boats.put(jsonRecord);
-            console.log("JSON record inputted");
+            console.log("[JS]: JSON record inputted");
             transaction.oncomplete = function () {
-                console.log("Transaction completed - closing database");
+                console.log("[JS]: Transaction completed - closing database");
                 db.close();
             };
         });
     },
 
     LoadFromIndexedDB: function (callback) {
+        console.log("[JS]: Running 'Load' function");
         Module.OpenDatabase(function (db) {
             if (!db) {
+                console.error("[JS]: Problem with opening connection to database");
                 let buffer = stringToNewUTF8("");
                 {{{ makeDynCall('vi', 'callback') }}} (buffer);
                 _free(buffer);
@@ -31,9 +33,10 @@ mergeInto(LibraryManager.library, {
 
             const transaction = db.transaction("boats", "readonly");
             const boats = transaction.objectStore("boats");
+            console.log("[JS]: Making a request to get the record from objectStore")
             var request = boats.get(1);
             transaction.oncomplete = function () {
-                console.log("Transaction completed - closing database");
+                console.log("[JS]: Transaction completed - closing database");
                 db.close();
             };
 
@@ -41,7 +44,7 @@ mergeInto(LibraryManager.library, {
                 var value = "";
                 if (request.result !== undefined) {
                     value = request.result;
-                    console.log("Retrieved string: " + value);
+                    console.log("[JS]: Retrieved string: " + value);
                 } else {
                     value = "";
                 }
@@ -52,7 +55,7 @@ mergeInto(LibraryManager.library, {
             };
 
             request.onerror = function () {
-                console.error("Error occurred when retrieving the value");
+                console.error("[JS]: Error occurred when retrieving the value");
                 let buffer = stringToNewUTF8("");
                 {{{ makeDynCall('vi', 'callback') }}} (buffer);
                 _free(buffer);
@@ -63,7 +66,9 @@ mergeInto(LibraryManager.library, {
 
     ExistsInIndexedDB: function (callback) {
         Module.OpenDatabase(function (db) {
+            console.log("[JS]: Running 'Exists' function");
             if (!db) {
+                console.log("[JS]: Error with DB");
                 {{{ makeDynCall('vi', 'callback') }}} (0);
                 return;
             }
@@ -72,14 +77,14 @@ mergeInto(LibraryManager.library, {
             const boats = transaction.objectStore("boats");
             var request = boats.get(1);
             transaction.oncomplete = function () {
-                console.log("Transaction completed - closing database");
+                console.log("[JS]: Transaction completed - closing database");
                 db.close();
             };
 
             request.onsuccess = function () {
                 var value = 0;
                 if (request.result !== undefined) {
-                    console.log("Value found");
+                    console.log("[JS]: Value found");
                     value = 1;
                 } else {
                     value = 0;
@@ -89,7 +94,7 @@ mergeInto(LibraryManager.library, {
             };
 
             request.onerror = function () {
-                console.error("Error occurred when retrieving the value");
+                console.error("[JS]: Error occurred when retrieving the value");
                 {{{ makeDynCall('vi', 'callback') }}} (0);
                 return;
             };

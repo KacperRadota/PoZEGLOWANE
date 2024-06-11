@@ -19,7 +19,7 @@ namespace DataStorage
 {
     public class DataController : MonoBehaviour
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
+// #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern bool IsIOS();
 
@@ -49,7 +49,7 @@ namespace DataStorage
             Instance._isLoadBoatsCallbackCompleted = true;
         }
 
-#endif
+// #endif
 
         public static DataController Instance { get; private set; }
         public Boats boats;
@@ -90,28 +90,31 @@ namespace DataStorage
             void SetIsWebIOSAccordingly()
             {
                 _isWebIOS = false;
-#if UNITY_WEBGL && !UNITY_EDITOR
+// #if UNITY_WEBGL && !UNITY_EDITOR
                 // TODO change later
                 _isWebIOS = true;
                 Debug.Log($"Is iOS (set from C#): {_isWebIOS}");
                 // _isWebIOS = IsIOS();
-#endif
+// #endif
             }
+        }
 
-            void CheckIfStorageExists()
+        private void CheckIfStorageExists()
+        {
+            if (_isWebIOS)
             {
-                if (_isWebIOS)
-                {
-#if UNITY_WEBGL && !UNITY_EDITOR
-                    ExistsInIndexedDB(ExistsInIndexedDB_Callback);
-#endif
-                }
-                else
-                {
-                    _isStorageCreated = File.Exists(_boatsDataPath);
-                    _isFirstSetupReady = true;
-                    LoadAllData();
-                }
+// #if UNITY_WEBGL && !UNITY_EDITOR
+                Debug.Log("IsStorageCreated: " + _isStorageCreated);
+                Debug.Log("IsFirstSetupReady: " + _isFirstSetupReady);
+                Debug.Log("Calling 'Exists' function'");
+                ExistsInIndexedDB(ExistsInIndexedDB_Callback);
+// #endif
+            }
+            else
+            {
+                _isStorageCreated = File.Exists(_boatsDataPath);
+                _isFirstSetupReady = true;
+                LoadAllData();
             }
         }
 
@@ -166,9 +169,9 @@ namespace DataStorage
             var jsonData = JsonUtility.ToJson(boats);
             if (_isWebIOS)
             {
-#if UNITY_WEBGL && !UNITY_EDITOR
+// #if UNITY_WEBGL && !UNITY_EDITOR
                 SaveToIndexedDB(jsonData);
-#endif
+// #endif
             }
             else
             {
@@ -181,6 +184,7 @@ namespace DataStorage
             while (!_isFirstSetupReady)
             {
                 if (!_isFirstSetupReady) continue;
+                Debug.Log("Waiting for first setup");
                 // Wait until setup is ready
                 break;
             }
@@ -188,14 +192,18 @@ namespace DataStorage
             while (!_isLoadBoatsCallbackCompleted)
             {
                 if (!_isLoadBoatsCallbackCompleted) continue;
+                Debug.Log("Waiting for LoadBoatsCallback to finish");
                 // If other class called LoadBoats(), wait until the result is gained, and return the function
                 return;
             }
 
+            Debug.Log("IsStorageCreated: " + _isStorageCreated);
+            Debug.Log("IsFirstSetupReady: " + _isFirstSetupReady);
             Debug.LogError("Exists?: " + _isStorageCreated);
             if (_isStorageCreated)
             {
                 // TODO lags after first creation somewhere here
+                Debug.Log("Calling a function with GetAwaiter()");
                 var jsonData = _isWebIOS
                     ? CallExternalLoadFunction().GetAwaiter().GetResult()
                     : File.ReadAllText(_boatsDataPath);
@@ -216,21 +224,26 @@ namespace DataStorage
             Task<string> CallExternalLoadFunction()
             {
                 var tcs = new TaskCompletionSource<string>();
+                Debug.Log("Starting Coroutine");
                 StartCoroutine(CallExternalLoadFunctionCoroutine(tcs));
+                Debug.Log("Returning the tcs.Task");
                 return tcs.Task;
 
                 IEnumerator CallExternalLoadFunctionCoroutine(TaskCompletionSource<string> taskCompletionSource)
                 {
                     _isLoadBoatsCallbackCompleted = false;
                     _loadBoatsCallbackResult = "";
-#if UNITY_WEBGL && !UNITY_EDITOR
+// #if UNITY_WEBGL && !UNITY_EDITOR
+                    Debug.Log("Calling Load function from C#");
                     LoadFromIndexedDB(LoadBoats_Callback);
-#endif
+// #endif
                     while (!_isLoadBoatsCallbackCompleted)
                     {
-                        yield return null;
+                        Debug.Log("Coroutine waiting for callback...");
+                        yield return new WaitForSeconds(0.01f);
                     }
 
+                    Debug.Log("Task completed");
                     taskCompletionSource.SetResult(_loadBoatsCallbackResult);
                 }
             }
@@ -273,7 +286,7 @@ namespace DataStorage
                 };
                 SetPopUpShowInfo();
                 SaveBoats();
-                _isStorageCreated = true;
+                CheckIfStorageExists();
             }
         }
 
