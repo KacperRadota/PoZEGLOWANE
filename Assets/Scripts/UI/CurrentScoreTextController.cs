@@ -8,7 +8,6 @@ namespace UI
     {
         private void Start()
         {
-            DataController.Instance.LoadBoats();
             GetComponent<TextMeshProUGUI>().text =
                 DataController.Instance.boats.currentlyChosenBoat.lastCalculatedScore.ToString();
         }

@@ -12,8 +12,7 @@
 
 ## TODO:
 
-- Check iOS detecting function (in JS)
-- Bug: File doesn't save until you save the score - maybe change to IndexDB completely
+- Bug: File doesn't save until you change the scene - maybe change to IndexDB completely
 - "Info" section, with things like:
     - Security Matters
     - Commands

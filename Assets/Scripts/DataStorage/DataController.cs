@@ -19,7 +19,7 @@ namespace DataStorage
 {
     public class DataController : MonoBehaviour
     {
-// #if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern bool IsIOS();
 
@@ -35,7 +35,6 @@ namespace DataStorage
         [MonoPInvokeCallback(typeof(Action<int>))]
         public static void ExistsInIndexedDB_Callback(int value)
         {
-            Debug.Log("'Exists' Callback called");
             Instance._isStorageCreated = value != 0;
             Instance._isFirstSetupReady = true;
             Instance.LoadAllData();
@@ -44,12 +43,11 @@ namespace DataStorage
         [MonoPInvokeCallback(typeof(Action<string>))]
         public static void LoadBoats_Callback(string value)
         {
-            Debug.Log("'Load' Callback called");
             Instance._loadBoatsCallbackResult = value;
             Instance._isLoadBoatsCallbackCompleted = true;
         }
 
-// #endif
+#endif
 
         public static DataController Instance { get; private set; }
         public Boats boats;
@@ -90,12 +88,9 @@ namespace DataStorage
             void SetIsWebIOSAccordingly()
             {
                 _isWebIOS = false;
-// #if UNITY_WEBGL && !UNITY_EDITOR
-                // TODO change later
-                _isWebIOS = true;
-                Debug.Log($"Is iOS (set from C#): {_isWebIOS}");
-                // _isWebIOS = IsIOS();
-// #endif
+#if UNITY_WEBGL && !UNITY_EDITOR
+                _isWebIOS = IsIOS();
+#endif
             }
         }
 
@@ -103,12 +98,9 @@ namespace DataStorage
         {
             if (_isWebIOS)
             {
-// #if UNITY_WEBGL && !UNITY_EDITOR
-                Debug.Log("IsStorageCreated: " + _isStorageCreated);
-                Debug.Log("IsFirstSetupReady: " + _isFirstSetupReady);
-                Debug.Log("Calling 'Exists' function'");
+#if UNITY_WEBGL && !UNITY_EDITOR
                 ExistsInIndexedDB(ExistsInIndexedDB_Callback);
-// #endif
+#endif
             }
             else
             {
@@ -120,7 +112,7 @@ namespace DataStorage
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            RecalculateCurrentScoreOfCurrentBoatIfApplicable();
+            _ = RecalculateCurrentScoreOfCurrentBoatIfApplicable();
         }
 
         private void OnDisable()
@@ -128,9 +120,20 @@ namespace DataStorage
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
-        private void RecalculateCurrentScoreOfCurrentBoatIfApplicable()
+        private async void LoadAllData()
         {
-            LoadBoats();
+            await LoadBoatsAsync();
+        }
+
+        private static void SetPopUpShowInfo()
+        {
+            PlayerPrefs.SetInt(PPKeys.WasDownloadInfoShown, PPValues.False);
+            PlayerPrefs.Save();
+        }
+
+        public async Task RecalculateCurrentScoreOfCurrentBoatIfApplicable()
+        {
+            await LoadBoatsAsync();
             var currentlyChosenBoat = Instance.boats.currentlyChosenBoat;
             if (currentlyChosenBoat.scoringEvents.Count == currentlyChosenBoat.lastCalculatedScoreListCount) return;
             var score = Instance.boats.currentlyChosenBoat.scoringEvents.Sum(scoringEvent =>
@@ -138,17 +141,6 @@ namespace DataStorage
             currentlyChosenBoat.lastCalculatedScore = score;
             currentlyChosenBoat.lastCalculatedScoreListCount = currentlyChosenBoat.scoringEvents.Count;
             SaveBoats();
-        }
-
-        private void LoadAllData()
-        {
-            LoadBoats();
-        }
-
-        private static void SetPopUpShowInfo()
-        {
-            PlayerPrefs.SetInt(PPKeys.WasDownloadInfoShown, PPValues.False);
-            PlayerPrefs.Save();
         }
 
         public void SaveBoats()
@@ -169,9 +161,9 @@ namespace DataStorage
             var jsonData = JsonUtility.ToJson(boats);
             if (_isWebIOS)
             {
-// #if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
                 SaveToIndexedDB(jsonData);
-// #endif
+#endif
             }
             else
             {
@@ -179,39 +171,34 @@ namespace DataStorage
             }
         }
 
-        public void LoadBoats()
+        public async Task LoadBoatsAsync()
         {
-            while (!_isFirstSetupReady)
+            if (!_isFirstSetupReady)
             {
-                if (!_isFirstSetupReady) continue;
-                Debug.Log("Waiting for first setup");
-                // Wait until setup is ready
-                break;
+                while (!_isFirstSetupReady)
+                {
+                    // Wait until setup is ready
+                    await Task.Yield();
+                }
             }
 
-            while (!_isLoadBoatsCallbackCompleted)
+            if (!_isLoadBoatsCallbackCompleted)
             {
-                if (!_isLoadBoatsCallbackCompleted) continue;
-                Debug.Log("Waiting for LoadBoatsCallback to finish");
-                // If other class called LoadBoats(), wait until the result is gained, and return the function
+                while (!_isLoadBoatsCallbackCompleted)
+                {
+                    // If other class called LoadBoats(), wait until the result is gained, and return the function
+                    await Task.Yield();
+                }
+
                 return;
             }
 
-            Debug.Log("IsStorageCreated: " + _isStorageCreated);
-            Debug.Log("IsFirstSetupReady: " + _isFirstSetupReady);
-            Debug.LogError("Exists?: " + _isStorageCreated);
             if (_isStorageCreated)
             {
-                // TODO lags after first creation somewhere here
-                Debug.Log("Calling a function with GetAwaiter()");
                 var jsonData = _isWebIOS
-                    ? CallExternalLoadFunction().GetAwaiter().GetResult()
+                    ? await CallExternalLoadFunction()
+                    // ReSharper disable once MethodHasAsyncOverload
                     : File.ReadAllText(_boatsDataPath);
-
-                Debug.LogError(
-                    "[L]File content:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                " +
-                    jsonData);
-
                 LoadDataFromJson(jsonData);
             }
             else
@@ -221,31 +208,19 @@ namespace DataStorage
 
             return;
 
-            Task<string> CallExternalLoadFunction()
+            async Task<string> CallExternalLoadFunction()
             {
-                var tcs = new TaskCompletionSource<string>();
-                Debug.Log("Starting Coroutine");
-                StartCoroutine(CallExternalLoadFunctionCoroutine(tcs));
-                Debug.Log("Returning the tcs.Task");
-                return tcs.Task;
-
-                IEnumerator CallExternalLoadFunctionCoroutine(TaskCompletionSource<string> taskCompletionSource)
+                _isLoadBoatsCallbackCompleted = false;
+                _loadBoatsCallbackResult = "";
+#if UNITY_WEBGL && !UNITY_EDITOR
+                LoadFromIndexedDB(LoadBoats_Callback);
+#endif
+                while (!_isLoadBoatsCallbackCompleted)
                 {
-                    _isLoadBoatsCallbackCompleted = false;
-                    _loadBoatsCallbackResult = "";
-// #if UNITY_WEBGL && !UNITY_EDITOR
-                    Debug.Log("Calling Load function from C#");
-                    LoadFromIndexedDB(LoadBoats_Callback);
-// #endif
-                    while (!_isLoadBoatsCallbackCompleted)
-                    {
-                        Debug.Log("Coroutine waiting for callback...");
-                        yield return new WaitForSeconds(0.01f);
-                    }
-
-                    Debug.Log("Task completed");
-                    taskCompletionSource.SetResult(_loadBoatsCallbackResult);
+                    await Task.Yield();
                 }
+
+                return _loadBoatsCallbackResult;
             }
 
             void LoadDataFromJson(string jsonData)
@@ -258,8 +233,6 @@ namespace DataStorage
                 {
                     JsonUtility.FromJsonOverwrite(jsonData, boats);
                 }
-
-                Debug.LogError("[O]BoatName: " + boats.currentlyChosenBoat.boatName);
             }
 
             void CreateNewSaveFile()
@@ -293,7 +266,6 @@ namespace DataStorage
 
         public ulong GetNextAvailableID()
         {
-            LoadBoats();
             var existingIDs = new SortedSet<ulong>(boats.boatsList.Select(boat => boat.id));
             ulong nextID = 0;
             foreach (var unused in existingIDs.TakeWhile(id => id == nextID))

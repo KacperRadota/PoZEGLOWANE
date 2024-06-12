@@ -13,7 +13,6 @@ namespace Managers
         {
             var boatName = inputField.text.Trim();
             inputField.text = "";
-            DataController.Instance.LoadBoats();
             if (boatName == "")
             {
                 if (DataController.Instance.boats.currentlyChosenBoat.boatName != "")
@@ -29,9 +28,9 @@ namespace Managers
             BoatNameTitleController.SetBoatName();
         }
 
-        private void Start()
+        private async void Start()
         {
-            DataController.Instance.LoadBoats();
+            await DataController.Instance.LoadBoatsAsync();
             if (DataController.Instance.boats.currentlyChosenBoat.boatName != "") return;
             PopUpManager.Instance.OpenPopUp(noFirstBoatPopUp);
         }

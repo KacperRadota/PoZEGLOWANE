@@ -14,9 +14,9 @@ namespace UI
             SetBoatName();
         }
 
-        public static void SetBoatName()
+        public static async void SetBoatName()
         {
-            DataController.Instance.LoadBoats();
+            await DataController.Instance.LoadBoatsAsync();
             _title.text = DataController.Instance.boats.currentlyChosenBoat.boatName;
         }
     }

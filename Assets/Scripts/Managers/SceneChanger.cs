@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Threading.Tasks;
 using DataStorage;
 using ObjectTypes;
 using UnityEngine;
@@ -22,16 +22,19 @@ namespace Managers
 
         private void ChangeSceneTo(string sceneName)
         {
-            StartCoroutine(LoadLevelWithAnimation(sceneName, _transition));
+            LoadLevelWithAnimation(sceneName, _transition);
             return;
 
-            static IEnumerator LoadLevelWithAnimation(string sceneName, Animator transition)
+            static async void LoadLevelWithAnimation(string sceneName, Animator transition)
             {
+                var task = DataController.Instance.RecalculateCurrentScoreOfCurrentBoatIfApplicable();
                 transition.SetTrigger(StartTrigger);
                 while (transition.IsInTransition(BasicLayer))
                 {
-                    yield return new WaitForEndOfFrame();
+                    await Task.Yield();
                 }
+
+                await task;
 
                 SceneManager.LoadScene(sceneName);
             }
