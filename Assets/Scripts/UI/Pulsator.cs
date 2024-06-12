@@ -37,8 +37,6 @@ namespace UI
                     _currentTargetScale *= 1.5f;
                 }
             }
-
-            Debug.Log(_currentTargetScale);
         }
 
         private void Start()

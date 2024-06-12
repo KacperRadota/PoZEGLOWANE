@@ -37,7 +37,6 @@ namespace Managers
                 score = _currentScore,
                 timeStamp = System.DateTime.Now.ToString()
             };
-            DataController.Instance.LoadBoats();
             DataController.Instance.boats.currentlyChosenBoat.scoringEvents.Add(scoringEvent);
             DataController.Instance.SaveBoats();
         }
