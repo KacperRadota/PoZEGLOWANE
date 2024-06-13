@@ -68,6 +68,7 @@ namespace DataStorage
             Application.targetFrameRate = 90;
             SceneManager.sceneLoaded += OnSceneLoaded;
             SetIsWebIOSAccordingly();
+            SetAndroidAppDownloadPopUpShowInfo();
             CheckIfStorageExists();
             return;
 
@@ -125,7 +126,7 @@ namespace DataStorage
             await LoadBoatsAsync();
         }
 
-        private static void SetPopUpShowInfo()
+        private static void SetAndroidAppDownloadPopUpShowInfo()
         {
             PlayerPrefs.SetInt(PPKeys.WasDownloadInfoShown, PPValues.False);
             PlayerPrefs.Save();
@@ -257,7 +258,6 @@ namespace DataStorage
                         lastCalculatedScoreListCount = 0
                     }
                 };
-                SetPopUpShowInfo();
                 SaveBoats();
                 CheckIfStorageExists();
             }
