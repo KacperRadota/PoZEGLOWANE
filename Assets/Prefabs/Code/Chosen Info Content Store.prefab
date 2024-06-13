@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5184652901637086507
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2679470973232091623}
+  - component: {fileID: 3713761704750250510}
+  m_Layer: 0
+  m_Name: Chosen Info Content Store
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2679470973232091623
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5184652901637086507}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3713761704750250510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5184652901637086507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d55e448babb4caf84bed1b54a2db30e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  safetyMattersContent: {fileID: 1947428812480700355, guid: a07efa0743853ba4b87b82bbcc4d0e80, type: 3}
+  commandsContent: {fileID: 1947428812480700355, guid: 8c004889913dd104bb372f1bf51baac6, type: 3}
+  yachtArchitectureContent: {fileID: 1947428812480700355, guid: 8847ec4e31609aa4a958a36b9d563ae0, type: 3}
+  nauticsContent: {fileID: 1947428812480700355, guid: 19bd41eaa256c4b45bd6a6f09b776821, type: 3}
+  faqContent: {fileID: 1947428812480700355, guid: 9cf61afe0a8de8141ae5e017ae9bbd1e, type: 3}
+  scoringRulesContent: {fileID: 1947428812480700355, guid: 4b51b8146a4a0fd4c99b1550e078f13d, type: 3}
+  knotsContent: {fileID: 1947428812480700355, guid: a9debc0766e40d24295b080af425d06a, type: 3}

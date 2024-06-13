@@ -8,7 +8,7 @@ namespace Managers
 {
     public class SceneChanger : MonoBehaviour
     {
-        public static SceneChanger Instance;
+        public static SceneChanger Instance { get; private set; }
         private static readonly int StartTrigger = Animator.StringToHash("Start");
         private const int BasicLayer = 0;
         private Animator _transition;
@@ -70,6 +70,11 @@ namespace Managers
         public void ChangeToInfoScene()
         {
             ChangeSceneTo(Scenes.InfoScene);
+        }
+
+        public void ChangeToChosenInfoScene()
+        {
+            ChangeSceneTo(Scenes.ChosenInfoScene);
         }
     }
 }

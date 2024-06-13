@@ -45,6 +45,9 @@ namespace UI
                 case Scenes.ScorerScene:
                     _scoreManager.GoToPreviousScreenIfApplicable(_scoreNotSavedPopUp.gameObject);
                     return;
+                case Scenes.ChosenInfoScene:
+                    SceneChanger.Instance.ChangeToInfoScene();
+                    return;
                 default:
                     SceneChanger.Instance.ChangeToMainScene();
                     return;
