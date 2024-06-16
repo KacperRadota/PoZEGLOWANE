@@ -100,7 +100,7 @@ MonoBehaviour:
   m_text: "Boja czerwona warta jest 1 pkt., natomiast zielona 2 pkt. za ka\u017Cd\u0105
     ko\u0144czyn\u0119 za\u0142oganta, kt\xF3ra dotknie boi.\n\nKa\u017Cdy za\u0142ogant
     mo\u017Ce dotkn\u0105\u0107 boi, ka\u017Cd\u0105 ko\u0144czyn\u0105 <b>TYLKO</b>
-    raz, w trakcie jednego podej\u015Bcia.\n\nBoja liczy si\u0119 do wyniku <b>TYLKO</b>
+    raz, w trakcie jednego podej\u015Bcia.\n\nBoja liczy si\u0119 do wyniku <b>TYLKO</b>,
     kiedy jest podejmowana na \u017Caglach.\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
