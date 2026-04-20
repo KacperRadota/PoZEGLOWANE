@@ -1,5 +1,6 @@
 # PoŻEGLOWANE
 
+🇵🇱
 ## Wersje
 
 ### Android
@@ -9,3 +10,14 @@
 ### WebGL
 
 [Otwórz na itch.io](https://kaszpir.itch.io/pozeglowane)
+
+🇬🇧
+## Versions
+
+### Android
+
+[Click here to download the newest version](https://github.com/KacperRadota/PoZEGLOWANE/raw/main/Builds/Android/Po%C5%BBEGLOWANE.apk)
+
+### WebGL
+
+[Open on itch.io](https://kaszpir.itch.io/pozeglowane)
